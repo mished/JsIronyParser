@@ -345,6 +345,223 @@ namespace JsIronyParser
             #endregion
 
 #endregion
+
+
+#region A.3 Statements
+
+            #region 1. Terminals
+
+            var LetOrConst = ToTerm("let") | "const";
+            var EmptyStatement = ToTerm(";");
+
+            #endregion
+
+            #region 2. Non-terminals
+
+            var Statement = new NonTerminal("Statement");
+            var Declaration = new NonTerminal("Declaration");
+            var HoistableDeclaration = new NonTerminal("HoistableDeclaration");
+            var BreakableStatement = new NonTerminal("BreakableStatement");
+            var BlockStatement = new NonTerminal("BlockStatement");
+            var Block = new NonTerminal("Block");
+            var StatementList = new NonTerminal("StatementList");
+            var StatementListItem = new NonTerminal("StatementListItem");
+            var LexicalDeclaration = new NonTerminal("LexicalDeclaration");            
+            var BindingList = new NonTerminal("BindingList");
+            var LexicalBinding = new NonTerminal("LexicalBinding");
+            var VariableStatement = new NonTerminal("VariableStatement");
+            var VariableDeclarationList = new NonTerminal("VariableDeclarationList");
+            var VariableDeclaration = new NonTerminal("VariableDeclaration");
+            var BindingPattern = new NonTerminal("BindingPattern");
+            var ObjectBindingPattern = new NonTerminal("ObjectBindingPattern");
+            var ArrayBindingPattern = new NonTerminal("ArrayBindingPattern");
+            var BindingPropertyList = new NonTerminal("BindingPropertyList");
+            var BindingElementList = new NonTerminal("BindingElementList");
+            var BindingElisionElement = new NonTerminal("BindingElisionElement");
+            var BindingProperty = new NonTerminal("BindingProperty");
+            var BindingElement = new NonTerminal("BindingElement");
+            var SingleNameBinding = new NonTerminal("SingleNameBinding");
+            var BindingRestElement = new NonTerminal("BindingRestElement");
+            var ExpressionStatement = new NonTerminal("ExpressionStatement");
+            var IfStatement = new NonTerminal("IfStatement");
+            var IterationStatement = new NonTerminal("IterationStatement");
+            var ForDeclaration = new NonTerminal("ForDeclaration");
+            var ForBinding = new NonTerminal("ForBinding");
+            var ContinueStatement = new NonTerminal("ContinueStatement");
+            var BreakStatement = new NonTerminal("BreakStatement");
+            var ReturnStatement = new NonTerminal("ReturnStatement");
+            var WithStatement = new NonTerminal("WithStatement");
+            var SwitchStatement = new NonTerminal("SwitchStatement");
+            var CaseBlock = new NonTerminal("CaseBlock");
+            var CaseClauses = new NonTerminal("CaseClauses");
+            var CaseClause = new NonTerminal("CaseClause");
+            var DefaultClause = new NonTerminal("DefaultClause");
+            var LabelledStatement = new NonTerminal("LabelledStatement");
+            var LabelledItem = new NonTerminal("LabelledItem");
+            var ThrowStatement = new NonTerminal("ThrowStatement");
+            var TryStatement = new NonTerminal("TryStatement");
+            var Catch = new NonTerminal("Catch");
+            var Finally = new NonTerminal("Finally");
+            var CatchParameter = new NonTerminal("CatchParameter");
+            var DebuggerStatement = new NonTerminal("DebuggerStatement");
+
+            #endregion
+
+            #region 3. BNF rules
+
+            Statement.Rule = BlockStatement
+                                | VariableStatement
+                                | EmptyStatement
+                                | ExpressionStatement
+                                | IfStatement
+                                | BreakableStatement
+                                | ContinueStatement
+                                | BreakStatement
+                                | ReturnStatement
+                                | WithStatement
+                                | LabelledStatement
+                                | ThrowStatement
+                                | TryStatement
+                                | DebuggerStatement;
+
+            Declaration.Rule = HoistableDeclaration
+                                | ClassDeclaration
+                                | LexicalDeclaration;
+
+            HoistableDeclaration.Rule = FunctionDeclaration
+                                        | GeneratorDeclaration;
+
+            BreakableStatement.Rule = IterationStatement
+                                        | SwitchStatement;
+
+            BlockStatement.Rule = Block;
+
+            Block.Rule = ToTerm("{") + StatementList.Q() + "}";
+
+            StatementList.Rule = StatementListItem
+                                    | StatementList + StatementListItem;
+
+            StatementListItem.Rule = Statement
+                                        | Declaration;
+
+            LexicalDeclaration.Rule = LetOrConst + BindingList;
+
+            BindingList.Rule = LexicalBinding
+                                | BindingList + ToTerm(",") + LexicalBinding;
+
+            LexicalBinding.Rule = BindingIdentifier + Initializer.Q()
+                                    | BindingPattern + Initializer;
+
+            VariableStatement.Rule = ToTerm("var") + VariableDeclarationList;
+
+            VariableDeclarationList.Rule = VariableDeclaration
+                                            | VariableDeclarationList + "," + VariableDeclaration;
+
+            VariableDeclaration.Rule = BindingIdentifier + Initializer.Q()
+                                        | BindingPattern + Initializer;
+
+            BindingPattern.Rule = ObjectBindingPattern
+                                    | ArrayBindingPattern;
+
+            ObjectBindingPattern.Rule = ToTerm("{") + "}"
+                                        | "{" + BindingPropertyList + "}"
+                                        | "{" + BindingPropertyList + "," + "}";
+
+            ArrayBindingPattern.Rule = ToTerm("[") + Elision.Q() + BindingRestElement.Q() + "]"
+                                        | "[" + BindingElementList + "]"
+                                        | "[" + BindingElementList + "," + Elision.Q() + BindingRestElement.Q() + "]";
+
+            BindingPropertyList.Rule = BindingProperty
+                                        | BindingPropertyList + "," + BindingProperty;
+
+            BindingElementList.Rule = BindingElisionElement
+                                        | BindingElementList + "," + BindingElisionElement;
+
+            BindingElisionElement.Rule = Elision.Q() + BindingElement;
+
+            BindingProperty.Rule = SingleNameBinding
+                                    | PropertyName + ":" + BindingElement;
+
+            BindingElement.Rule = SingleNameBinding
+                                    | BindingPattern + Initializer.Q()
+                                    | BindingPattern + BindingPattern.Q();  // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-destructuring-binding-patterns
+
+            SingleNameBinding.Rule = BindingIdentifier + Initializer.Q()
+                                        | BindingIdentifier + Initializer.Q();
+
+            BindingRestElement.Rule = ToTerm("...") + BindingIdentifier
+                                        | ToTerm("...") + BindingIdentifier;
+
+            ExpressionStatement.Rule = Expression + ";"; // [lookahead ∉ {{, function, class, let [}] https://people.mozilla.org/~jorendorff/es6-draft.html#sec-expression-statement
+
+            IfStatement.Rule = ToTerm("if") + "(" + Expression + ")" + Statement + "else" + Statement
+                                | "if" + "(" + Expression + ")" + Statement;
+
+            // See 13.6 https://people.mozilla.org/~jorendorff/es6-draft.html#sec-iteration-statements
+            IterationStatement.Rule = ToTerm("do") + Statement + "while" + "(" + Expression + ")" + ";"
+                                        | "while" + "(" + Expression + ")" + Statement
+                                        | "for" + "(" + Expression.Q() + ";" + Expression.Q() + ";" + Expression.Q() + ")" + Statement
+                                        | "for" + "(" + "var" + VariableDeclarationList + ";" + Expression.Q() + ";" + Expression.Q() + ")" + Statement
+                                        | "for" + "(" + LexicalDeclaration + Expression.Q() + ";" + Expression.Q() + ")" + Statement
+                                        | "for" + "(" + LeftHandSideExpression + "in" + Expression + ")" + Statement
+                                        | "for" + "(" + "var" + ForBinding + "in" + Expression + ")" + Statement
+                                        | "for" + "(" + ForDeclaration + "in" + Expression + ")" + Statement
+                                        | "for" + "(" + LeftHandSideExpression + "of" + AssignmentExpression + ")" + Statement
+                                        | "for" + "(" + "var" + ForBinding + "of" + AssignmentExpression + ")" + Statement
+                                        | "for" + "(" + ForDeclaration + "of" + AssignmentExpression + ")" + Statement;
+
+            ForDeclaration.Rule = LetOrConst + ForBinding;
+
+            ForBinding.Rule = BindingIdentifier
+                                | BindingPattern;
+
+            ContinueStatement.Rule = ToTerm("continue") + ";"
+                                        | "continue" + LabelIdentifier + ";";
+
+            BreakStatement.Rule = ToTerm("break") + ";"
+                                    | "break" + LabelIdentifier + ";";
+
+            ReturnStatement.Rule = ToTerm("return") + ";"
+                                    | "return" + Expression + ";";
+
+            WithStatement.Rule = ToTerm("with") + "(" + Expression + ")" + Statement;
+
+            SwitchStatement.Rule = ToTerm("switch") + "(" + Expression + ")" + CaseBlock;
+
+            CaseBlock.Rule = ToTerm("{") + CaseClauses.Q() + "}"
+                                | "{" + CaseClauses.Q() + DefaultClause + CaseClauses.Q() + "}";
+
+            CaseClauses.Rule = CaseClause
+                                | CaseClauses + CaseClause;
+
+            CaseClause.Rule = ToTerm("case") + Expression + ":" + StatementList.Q();
+
+            DefaultClause.Rule = ToTerm("default") + ":" + StatementList.Q();
+
+            LabelledStatement.Rule = LabelIdentifier + ":" + LabelledItem;
+
+            LabelledItem.Rule = Statement
+                                | FunctionDeclaration;
+
+            ThrowStatement.Rule = ToTerm("throw") + Expression + ";";
+
+            TryStatement.Rule = ToTerm("try") + Block + Catch
+                                | "try" + Block + Finally
+                                | "try" + Catch + Finally;
+
+            Catch.Rule = ToTerm("catch") + "(" + CatchParameter + ")" + Block;
+
+            Finally.Rule = ToTerm("finally") + Block;
+
+            CatchParameter.Rule = BindingIdentifier
+                                    | BindingPattern;
+
+            DebuggerStatement.Rule = "debugger" + ";";
+
+            #endregion
+
+#endregion
+
         }
     }
 }
