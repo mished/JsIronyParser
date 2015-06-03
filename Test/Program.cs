@@ -10,35 +10,39 @@ namespace Test
 {
     public class Program
     {
-        public static ParseTreeNode getRoot(string sourceCode, Grammar grammar)
-        {
+        //public static ParseTreeNode getRoot(string sourceCode, Grammar grammar)
+        //{
 
-            LanguageData language = new LanguageData(grammar);
+        //    Parser parser = new Parser(grammar);
 
-            Parser parser = new Parser(language);
+        //    ParseTree parseTree = parser.Parse(sourceCode);
 
-            ParseTree parseTree = parser.Parse(sourceCode);
+        //    ParseTreeNode root = parseTree.Root;
 
-            ParseTreeNode root = parseTree.Root;
+        //    return root;
 
-            return root;
+        //}
 
-        }
+        //public static void dispTree(ParseTreeNode node, int level)
+        //{
+        //    for (int i = 0; i < level; i++)
+        //        Console.Write("  ");
+        //    Console.WriteLine(node);
 
-        public static void dispTree(ParseTreeNode node, int level)
-        {
-            for (int i = 0; i < level; i++)
-                Console.Write("  ");
-            Console.WriteLine(node);
+        //    foreach (ParseTreeNode child in node.ChildNodes)
+        //        dispTree(child, level + 1);
 
-            foreach (ParseTreeNode child in node.ChildNodes)
-                dispTree(child, level + 1);
-
-        }
+        //}
 
         static void Main(string[] args)
         {
-            dispTree(getRoot("", new JsGrammar()), 1);
+            Grammar grammar = new JsGrammar();
+            Parser parser = new Parser(grammar);
+            ParseTree parseTree = parser.Parse("var");
+            var root = parseTree.Root;
+            Console.WriteLine(root.ToString());
+            foreach (var child in root.ChildNodes)
+                Console.WriteLine(child.ToString());
         }        
     }
 }
