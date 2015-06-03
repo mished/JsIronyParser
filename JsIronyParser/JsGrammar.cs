@@ -345,6 +345,69 @@ namespace JsIronyParser
             #endregion
 
 #endregion
+
+            #region A.2 Expressions
+
+            #region 1. Terminals
+
+            #endregion
+
+            #region 2. Non-terminals
+            var IdentifierReference = new NonTerminal("IdentifierReference");
+            var BindingIdentifier = new NonTerminal("BindingIdentifier");
+            var LabelIdentifier = new NonTerminal("LabelIdentifier");
+            var Identifier = new NonTerminal("Identifier");
+            var PrimaryExpression = new NonTerminal("PrimaryExpression");
+            var CoverParenthesizedExpressionAndArrowParameterList = new NonTerminal("CoverParenthesizedExpressionAndArrowParameterList");
+            var ParenthesizedExpression = new NonTerminal("ParenthesizedExpression");
+            var Literal = new NonTerminal("Literal");
+            var ArrayLiteral = new NonTerminal("ArrayLiteral");
+
+
+            #endregion
+
+            #region 3. BNF rules
+            IdentifierReference.Rule = IdentifierName
+                                        | "yield";
+
+            BindingIdentifier.Rule = IdentifierName // ???
+                                    | "yield";               
+
+            LabelIdentifier.Rule = IdentifierName  // ???
+                                    | "yield";
+                                    
+            Identifier.Rule = IdentifierName; // BUT NOT
+
+            PrimaryExpression.Rule = "this"
+                                    | IdentifierReference
+                                    | Literal
+                                    | ArrayLiteral
+                                    | ObjectLiteral
+                                    | FunctionExpression
+                                    | ClassExpression
+                                    | GeneratorExpression
+                                    | RegularExpressionLiteral
+                                    | TemplateLiteral
+                                    | CoverParenthesizedExpressionAndArrowParameterList;
+
+            CoverParenthesizedExpressionAndArrowParameterList.Rule = "(" + Expression + ")"
+                                                                    | "(" + ")"
+                                                                    | "(" + SpreadElement + BindingIdentifier + ")"
+                                                                    | "(" + Expression + "," + SpreadElement + BindingIdentifier + ")";
+            
+            ParenthesizedExpression.Rule = "(" + Expression + ")";
+
+            Literal.Rule = NullLiteral
+                           | BooleanLiteral
+                           | NumericLiteral
+                           | StringLiteral;
+
+            ArrayLiteral.Rule = "[" + Elision.Q() + "]"
+                                | 
+
+            #endregion
+
+            #endregion
         }
     }
 }
