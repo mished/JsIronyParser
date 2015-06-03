@@ -363,6 +363,47 @@ namespace JsIronyParser
             var ParenthesizedExpression = new NonTerminal("ParenthesizedExpression");
             var Literal = new NonTerminal("Literal");
             var ArrayLiteral = new NonTerminal("ArrayLiteral");
+            var ElementList = new NonTerminal("ElementList");
+            var Elision = new NonTerminal("Elision");
+            var SpreadElement = new NonTerminal("SpreadElement");
+            var ObjectLiteral = new NonTerminal("ObjectLiteral");
+            var PropertyDefinitionList = new NonTerminal("PropertyDefinitionList");
+            var PropertyDefinition = new NonTerminal("PropertyDefinition");
+            var PropertyName = new NonTerminal("PropertyName");
+            var LiteralPropertyName = new NonTerminal("LiteralPropertyName");
+            var ComputedPropertyName = new NonTerminal("ComputedPropertyName");
+            var CoverInitializedName = new NonTerminal("CoverInitializedName");
+            var Initializer = new NonTerminal("Initializer");
+            var TemplateLiteral = new NonTerminal("TemplateLiteral");
+            var TemplateSpans = new NonTerminal("TemplateSpans");
+            var TemplateMiddleList = new NonTerminal("TemplateMiddleList");
+            var MemberExpression = new NonTerminal("MemberExpression");
+            var SuperProperty = new NonTerminal("SuperProperty");
+            var MetaProperty = new NonTerminal("MetaProperty");
+            var NewTarget = new NonTerminal("NewTarget");
+            var NewExpression = new NonTerminal("NewExpression");
+            var CallExpression = new NonTerminal("CallExpression");
+            var SuperCall = new NonTerminal("SuperCall");
+            var Arguments = new NonTerminal("Arguments");
+            var ArgumentList = new NonTerminal("ArgumentList");
+            var LeftHandSideExpression = new NonTerminal("LeftHandSideExpression");
+            var PostfixExpression = new NonTerminal("PostfixExpression");
+            var UnaryExpression = new NonTerminal("UnaryExpression");
+            var MultiplicativeExpression = new NonTerminal("MultiplicativeExpression");
+            var MultiplicativeOperator = new NonTerminal("MultiplicativeOperator");
+            var AdditiveExpression = new NonTerminal("AdditiveExpression");
+            var ShiftExpression = new NonTerminal("ShiftExpression");
+            var RelationalExpression = new NonTerminal("RelationalExpression");
+            var EqualityExpression = new NonTerminal("EqualityExpression");
+            var BitwiseANDExpression = new NonTerminal("BitwiseANDExpression");
+            var BitwiseXORExpression = new NonTerminal("BitwiseXORExpression");
+            var BitwiseORExpression = new NonTerminal("BitwiseORExpression");
+            var LogicalANDExpression = new NonTerminal("LogicalANDExpression");
+            var LogicalORExpression = new NonTerminal("LogicalORExpression");
+            var ConditionalExpression = new NonTerminal("ConditionalExpression");
+            var AssignmentExpression = new NonTerminal("AssignmentExpression");
+            var AssignmentOperator = new NonTerminal("AssignmentOperator");
+            var Expression = new NonTerminal("Expression");
 
             #endregion
 
@@ -370,13 +411,13 @@ namespace JsIronyParser
             IdentifierReference.Rule = IdentifierName
                                         | "yield";
 
-            BindingIdentifier.Rule = IdentifierName // ???
+            BindingIdentifier.Rule = IdentifierName // TODO: http://people.mozilla.org/~jorendorff/es6-draft.html#sec-identifiers
                                     | "yield";               
 
-            LabelIdentifier.Rule = IdentifierName  // ???
+            LabelIdentifier.Rule = IdentifierName  //
                                     | "yield";
                                     
-            Identifier.Rule = IdentifierName; // BUT NOT
+            Identifier.Rule = IdentifierName; // 
 
             PrimaryExpression.Rule = "this"
                                     | IdentifierReference
@@ -403,7 +444,163 @@ namespace JsIronyParser
                            | StringLiteral;
 
             ArrayLiteral.Rule = "[" + Elision.Q() + "]"
-                                | 
+                                | "[" + ElementList + "]"
+                                | "[" + ElementList + "," + Elision.Q() + "]";
+
+            ElementList.Rule = Elision.Q() + AssignmentExpression
+                               | Elision.Q() + SpreadElement
+                               | ElementList + "," + Elision.Q() + AssignmentExpression
+                               | ElementList + "," + Elision.Q() + SpreadElement;
+
+            Elision.Rule = ","
+                           | Elision + ",";
+
+            SpreadElement.Rule = AssignmentExpression; // TODO: "..." http://people.mozilla.org/~jorendorff/es6-draft.html#sec-array-initializer
+
+            ObjectLiteral.Rule = "{" + "}"
+                                 | "{" + PropertyDefinitionList + "}"
+                                 | "{" + PropertyDefinitionList + "," + "}";
+
+            PropertyDefinitionList.Rule = PropertyDefinition
+                                          | PropertyDefinitionList + "," + PropertyDefinition;
+
+            PropertyDefinition.Rule = IdentifierReference
+                                      | CoverInitializedName
+                                      | PropertyName + ":" + AssignmentExpression
+                                      | MethodDefinition;
+
+            PropertyName.Rule = LiteralPropertyName  // [+GeneratorParameter] http://people.mozilla.org/~jorendorff/es6-draft.html#sec-object-initializer
+                                | ComputedPropertyName
+                                | ComputedPropertyName;
+
+            LiteralPropertyName.Rule = IdentifierName
+                                       | StringLiteral
+                                       | NumericLiteral;
+
+            ComputedPropertyName.Rule = "[" + AssignmentExpression + "]";
+
+            CoverInitializedName.Rule = IdentifierReference + Initializer;
+
+            Initializer.Rule = "=" + AssignmentExpression;
+
+            TemplateLiteral.Rule = NoSubstitutionTemplate
+                                   | TemplateHead + Expression + TemplateSpans;
+
+            TemplateSpans.Rule = TemplateTail
+                                 | TemplateMiddleList + TemplateTail;
+
+            TemplateMiddleList.Rule = TemplateMiddle + Expression
+                                      | TemplateMiddleList + TemplateMiddle + Expression;
+
+            MemberExpression.Rule = PrimaryExpression
+                                    | MemberExpression + "[" + Expression + "]"
+                                    | MemberExpression + "." + IdentifierName
+                                    | MemberExpression + TemplateLiteral
+                                    | SuperProperty
+                                    | MetaProperty
+                                    | "new" + MemberExpression + Arguments;
+
+            SuperProperty.Rule = "super" + "[" + Expression + "]"
+                                 | "super" + "." + IdentifierName;
+
+            MetaProperty.Rule = NewTarget;
+
+            NewTarget.Rule = "new" + "." + "target";
+
+            NewExpression.Rule = MemberExpression
+                                 | "new" + NewExpression;
+
+            CallExpression.Rule = MemberExpression + Arguments
+                                  | SuperCall
+                                  | CallExpression + Arguments
+                                  | CallExpression + "[" + Expression + "]"
+                                  | CallExpression + "." + IdentifierName
+                                  | CallExpression + TemplateLiteral;
+
+            SuperCall.Rule = "super" + Arguments;
+
+            Arguments.Rule = "(" + ")"
+                             | "(" + ArgumentList + ")";
+
+            ArgumentList.Rule = AssignmentExpression
+                                | AssignmentExpression // ... + AssignmentExpression
+                                | ArgumentList + "," + AssignmentExpression
+                                | ArgumentList + "," + AssignmentExpression; // ... + AssignmentExpression
+
+            LeftHandSideExpression.Rule = NewExpression
+                                          | CallExpression;
+
+            PostfixExpression.Rule = LeftHandSideExpression
+                                     | LeftHandSideExpression + "++"  // [no LineTerminator here] ++
+                                     | LeftHandSideExpression + "--";
+
+            UnaryExpression.Rule = PostfixExpression
+                                   | "delete" + UnaryExpression
+                                   | "void" + UnaryExpression
+                                   | "typeof" + UnaryExpression
+                                   | "++" + UnaryExpression
+                                   | "--" + UnaryExpression
+                                   | "+" + UnaryExpression
+                                   | "-" + UnaryExpression
+                                   | "~" + UnaryExpression
+                                   | "!" + UnaryExpression;
+
+            MultiplicativeExpression.Rule = UnaryExpression
+                                            | MultiplicativeExpression + MultiplicativeOperator + UnaryExpression;
+
+            MultiplicativeOperator.Rule = ""; // TODO: one of * / %
+
+            AdditiveExpression.Rule = MultiplicativeExpression
+                                      | AdditiveExpression + "+" + MultiplicativeExpression
+                                      | AdditiveExpression + "-" + MultiplicativeExpression;
+
+            ShiftExpression.Rule = AdditiveExpression
+                                   | ShiftExpression + "<<" + AdditiveExpression
+                                   | ShiftExpression + ">>" + AdditiveExpression
+                                   | ShiftExpression + ">>>" + AdditiveExpression;
+
+            RelationalExpression.Rule = ShiftExpression
+                                        | RelationalExpression + "<" + ShiftExpression
+                                        | RelationalExpression + ">" + ShiftExpression
+                                        | RelationalExpression + "<=" + ShiftExpression
+                                        | RelationalExpression + ">=" + ShiftExpression
+                                        | RelationalExpression + "instanceof" + ShiftExpression
+                                        | RelationalExpression + "in" + ShiftExpression;  // [+In] RelationalExpression in ShiftExpression http://people.mozilla.org/~jorendorff/es6-draft.html#sec-relational-operators
+
+            EqualityExpression.Rule = RelationalExpression
+                                      | EqualityExpression + "==" + RelationalExpression
+                                      | EqualityExpression + "!=" + RelationalExpression
+                                      | EqualityExpression + "===" + RelationalExpression
+                                      | EqualityExpression + "!==" + RelationalExpression;
+
+            BitwiseANDExpression.Rule = EqualityExpression
+                                        | BitwiseANDExpression + "&" + EqualityExpression;
+
+            BitwiseXORExpression.Rule = BitwiseANDExpression
+                                        | BitwiseXORExpression + "^" + BitwiseANDExpression;
+
+            BitwiseORExpression.Rule = BitwiseXORExpression
+                                       | BitwiseORExpression + "|" + BitwiseXORExpression;
+
+            LogicalANDExpression.Rule = BitwiseORExpression
+                                        | LogicalANDExpression + "&&" + BitwiseORExpression;
+
+            LogicalORExpression.Rule = LogicalANDExpression
+                                       | LogicalORExpression + "||" + LogicalANDExpression;
+
+            ConditionalExpression.Rule = LogicalORExpression
+                                         | LogicalORExpression + "?" + AssignmentExpression + ":" + AssignmentExpression; // Check
+
+            AssignmentExpression.Rule = ConditionalExpression
+                                        | YieldExpression
+                                        | ArrowFunction
+                                        | LeftHandSideExpression + "=" + AssignmentExpression
+                                        | LeftHandSideExpression + AssignmentOperator + AssignmentExpression;
+
+            AssignmentOperator.Rule = ""; // one of *=	/=	%=	+=	-=	<<=	>>=	>>>=	&=	^=	|=
+
+            Expression.Rule = AssignmentExpression
+                              | Expression + "," + AssignmentExpression;
 
             #endregion
 
@@ -418,7 +615,7 @@ namespace JsIronyParser
             var EmptyStatement = ToTerm(";");
 
             #endregion
-
+            
             #region 2. Non-terminals
 
             var Statement = new NonTerminal("Statement");
@@ -470,7 +667,7 @@ namespace JsIronyParser
 
             #endregion
 
-          #region 3. BNF rules
+            #region 3. BNF rules
 
             Statement.Rule = BlockStatement
                                 | VariableStatement
@@ -619,11 +816,9 @@ namespace JsIronyParser
             CatchParameter.Rule = BindingIdentifier
                                     | BindingPattern;
 
-            DebuggerStatement.Rule = "debugger" + ";";
+            DebuggerStatement.Rule = "debugger" + ";";   
 
-            
-
-#endregion
+            #endregion
 
 #endregion
 
