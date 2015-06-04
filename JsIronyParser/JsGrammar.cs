@@ -1042,6 +1042,103 @@ namespace JsIronyParser
             #endregion
 
 
+            #region A.6 Number Conversions
+
+            #region 1. Terminals
+            var DecimalDigit = new RegexBasedTerminal("DecimalDigit", "[0-9]");
+            var ExponentIndicator = new RegexBasedTerminal("ExponentIndicator", "[eE]");
+            var HexDigit = new RegexBasedTerminal("HexDigit", "[0-9a-fA-F]");
+            #endregion
+
+            #region 2. Non-terminals
+            var StringNumericLiteral = new NonTerminal("StringNumericLiteral");
+            var StrWhiteSpace = new NonTerminal("StrWhiteSpace");
+            var StrWhiteSpaceChar = new NonTerminal("StrWhiteSpaceChar");
+            var StrNumericLiteral = new NonTerminal("StrNumericLiteral");
+            var StrDecimalLiteral = new NonTerminal("StrDecimalLiteral");
+            var StrUnsignedDecimalLiteral = new NonTerminal("StrUnsignedDecimalLiteral");
+            var DecimalDigits = new NonTerminal("DecimalDigits");
+            var ExponentPart = new NonTerminal("ExponentPart");
+            var SignedInteger = new NonTerminal("SignedInteger");
+            var HexIntegerLiteral = new NonTerminal("HexIntegerLiteral");
+            #endregion
+
+            #region 3. BNF rules
+            StringNumericLiteral.Rule = StrWhiteSpace.Q()
+                                        | StrWhiteSpace.Q() + StrNumericLiteral + StrWhiteSpace.Q();
+
+            StrWhiteSpace.Rule = StrWhiteSpaceChar + StrWhiteSpace.Q();
+
+            StrWhiteSpaceChar.Rule = WhiteSpace
+                                     | LineTerminator;
+
+            StrNumericLiteral.Rule = StrDecimalLiteral
+                                     | BinaryIntegerLiteral
+                                     | OctalIntegerLiteral
+                                     | HexIntegerLiteral;
+
+            StrDecimalLiteral.Rule = StrUnsignedDecimalLiteral
+                                     | "+" + StrUnsignedDecimalLiteral
+                                     | "-" + StrUnsignedDecimalLiteral;
+
+            StrUnsignedDecimalLiteral.Rule = Infinity
+                                             | DecimalDigits + "." + DecimalDigits.Q() + ExponentPart.Q()
+                                             | "." + DecimalDigits + ExponentPart.Q()
+                                             | DecimalDigits + ExponentPart;
+
+            DecimalDigits.Rule = DecimalDigit
+                                 | DecimalDigits + DecimalDigit;
+
+            ExponentPart.Rule = ExponentIndicator SignedInteger;
+
+            SignedInteger.Rule = DecimalDigits
+                                 | "+" + DecimalDigits
+                                 | "-" + DecimalDigits;
+
+            HexIntegerLiteral.Rule = "0x" + HexDigit
+                                     | "0X" + HexDigit
+                                     | HexIntegerLiteral + HexDigit;
+            #endregion
+
+            #endregion
+
+
+            #region A.7 Universal Resource Identifier Character Classes
+
+            #region 1. Terminals
+            var uriReserved = new RegexBasedTerminal("uriReserved", "[;/?:@&=+$,]");
+            var uriAlpha = new RegexBasedTerminal("uriAlpha", "[a-zA-Z]");
+            var uriMark = new RegexBasedTerminal("uriMark", "[-_.!~*'()]");
+            #endregion
+
+            #region 2. Non-terminals
+            var uri = new NonTerminal("uri");
+            var uriCharacters = new NonTerminal("uriCharacters");
+            var uriCharacter = new NonTerminal("uriCharacter");
+            var uriUnescaped = new NonTerminal("uriUnescaped");
+            var uriEscaped = new NonTerminal("uriEscaped");
+            #endregion
+
+            #region 3. BNF rules
+            uri.Rule = uriCharacters.Q();
+
+            uriCharacters.Rule = uriCharacter + uriCharacters.Q();
+
+            uriCharacter.Rule = uriReserved
+                                | uriUnescaped
+                                | uriEscaped;
+
+            uriUnescaped.Rule = uriAlpha
+                                | DecimalDigit
+                                | uriMark;
+
+            uriEscaped.Rule = "%" + HexDigit + HexDigit; // %?
+
+            #endregion
+            
+            #endregion
+
+
             #region A.8 Regular Expressions
 
             #region 1. Terminals
