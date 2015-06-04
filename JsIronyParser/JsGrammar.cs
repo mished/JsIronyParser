@@ -12,7 +12,7 @@ namespace JsIronyParser
         public JsGrammar()
         {
 
-#region A.1 Lexical Grammar
+            #region A.1 Lexical Grammar
 
             #region 1. Terminals
             var SourceCharacter = new RegexBasedTerminal("SourceCharacter", @"[\s\S]");
@@ -344,10 +344,10 @@ namespace JsIronyParser
                                      | new RegexBasedTerminal("[^`\\$\u000A\u000D\u2028\u2029]");
             #endregion
 
-#endregion
+            #endregion
 
             
-#region A.2 Expressions
+            #region A.2 Expressions
 
             #region 1. Terminals
 
@@ -604,10 +604,10 @@ namespace JsIronyParser
 
             #endregion
 
-#endregion
+            #endregion
 
 
-#region A.3 Statements
+            #region A.3 Statements
 
             #region 1. Terminals
 
@@ -820,8 +820,142 @@ namespace JsIronyParser
 
             #endregion
 
-#endregion
+            #endregion
 
+
+            #region A.4 Functions and Classes
+
+            #region 1. Terminals
+
+            #endregion
+
+            #region 2. Non-terminals
+            var FunctionDeclaration = new NonTerminal("FunctionDeclaration");
+            var FunctionExpression = new NonTerminal("FunctionExpression");
+            var StrictFormalParameters = new NonTerminal("StrictFormalParameters");
+            var FormalParameters = new NonTerminal("FormalParameters");
+            var FormalParameterList = new NonTerminal("FormalParameterList");
+            var FormalsList = new NonTerminal("FormalsList");
+            var FunctionRestParameter = new NonTerminal("FunctionRestParameter");
+            var FormalParameter = new NonTerminal("FormalParameter");
+            var FunctionBody = new NonTerminal("FunctionBody");
+            var FunctionStatementList = new NonTerminal("FunctionStatementList");
+            var ArrowFunction = new NonTerminal("ArrowFunction");
+            var ArrowParameters = new NonTerminal("ArrowParameters");
+            var ConciseBody = new NonTerminal("ConciseBody");
+            var ArrowFormalParameters = new NonTerminal("ArrowFormalParameters");
+            var MethodDefinition = new NonTerminal("MethodDefinition");
+            var PropertySetParameterList = new NonTerminal("PropertySetParameterList");
+            var GeneratorMethod = new NonTerminal("GeneratorMethod");
+            var GeneratorDeclaration = new NonTerminal("GeneratorDeclaration");
+            var GeneratorExpression = new NonTerminal("GeneratorExpression");
+            var GeneratorBody = new NonTerminal("GeneratorBody");
+            var YieldExpression = new NonTerminal("YieldExpression");
+            var ClassDeclaration = new NonTerminal("ClassDeclaration");
+            var ClassExpression = new NonTerminal("ClassExpression");
+            var ClassTail = new NonTerminal("ClassTail");
+            var ClassHeritage = new NonTerminal("ClassHeritage");
+            var ClassBody = new NonTerminal("ClassBody");
+            var ClassElementList = new NonTerminal("ClassElementList");
+            var ClassElement = new NonTerminal("ClassElement");
+
+
+            #endregion
+
+            #region 3. BNF rules
+            FunctionDeclaration.Rule = "function" + BindingIdentifier + "(" + FormalParameters + ")" + "{" + FunctionBody + "}"
+                                       | "function" + "(" + FormalParameters + ")" + "{" + FunctionBody + "}";
+
+            FunctionExpression.Rule = "function" + BindingIdentifier.Q() + "(" + FormalParameters + ")" + "{" + FunctionBody + "}";
+
+            StrictFormalParameters.Rule = FormalParameters;
+
+            FormalParameters.Rule = ToTerm("(?:)") // empty string?
+                                    | FormalParameterList;
+
+            FormalParameterList.Rule = FunctionRestParameter
+                                       | FormalsList
+                                       | FormalsList + "," + FunctionRestParameter;
+
+            FormalsList.Rule = FormalParameter
+                               | FormalsList + "," + FormalParameter;
+
+            FunctionRestParameter.Rule = BindingRestElement;
+
+            FormalParameter.Rule = BindingElement;
+
+            FunctionBody.Rule = FunctionStatementList;
+
+            FunctionStatementList.Rule = StatementList;
+
+            ArrowFunction.Rule = ArrowParameters + "=>" + ConciseBody; //ArrowParameters [no LineTerminator here] "=>"  this rule is correct?
+
+            ArrowParameters.Rule = BindingIdentifier
+                                   | CoverParenthesizedExpressionAndArrowParameterList; // ????? http://people.mozilla.org/~jorendorff/es6-draft.html#sec-arrow-function-definitions
+
+            ConciseBody.Rule = AssignmentExpression // [lookahead ≠ { ]?
+                               | "{" + FunctionBody + "}";
+
+            ArrowFormalParameters.Rule = "(" + StrictFormalParameters + ")";
+
+            MethodDefinition.Rule = PropertyName + "(" + StrictFormalParameters + ")" + "{" + FunctionBody + "}"
+                                    | GeneratorMethod
+                                    | "get" + PropertyName + "(" + ")" + "{" + FunctionBody + "}"
+                                    | "set" + PropertyName + "(" + PropertySetParameterList + ")" + "{" + FunctionBody + "}";
+
+            PropertySetParameterList.Rule = FormalParameter;
+
+            GeneratorMethod.Rule = "*" + PropertyName + "(" + StrictFormalParameters + ")" + "{" + GeneratorBody + "}";
+
+            GeneratorDeclaration.Rule = "function" + "*" + BindingIdentifier + "(" + FormalParameters + ")" + "{" + GeneratorBody + "}"
+                                        | "function" + "*" + "(" + FormalParameters + ")" + "{" + GeneratorBody + "}";
+
+            GeneratorExpression.Rule = "function" + "*" + BindingIdentifier.Q() + "(" + FormalParameters + ")" + "{" + GeneratorBody + "}";
+
+            GeneratorBody.Rule = FunctionBody;
+
+            YieldExpression.Rule = "yield"
+                                   | "yield" + AssignmentExpression  // yield [no LineTerminator here] AssignmentExpression
+                                   | "yield" + "*" + AssignmentExpression; // yield [no LineTerminator here] * AssignmentExpression
+
+            ClassDeclaration.Rule = "class" + BindingIdentifier + ClassTail
+                                    | "class" + ClassTail;
+
+            ClassExpression.Rule = "class" + BindingIdentifier.Q() + ClassTail;
+
+            ClassTail.Rule = ClassHeritage.Q() + "{" + ClassBody.Q() + "}";
+
+            ClassHeritage.Rule = "extends" + LeftHandSideExpression;
+
+            ClassBody.Rule = ClassElementList;
+
+            ClassElementList.Rule = ClassElement
+                                    | ClassElementList + ClassElement;
+
+            ClassElement.Rule = MethodDefinition
+                                | "static" + MethodDefinition // || ; or && ;?
+                                | ";";  
+
+            #endregion 
+
+            #endregion
+
+
+            #region A.5 Scripts and Modules
+
+            #region 1. Terminals
+
+            #endregion
+
+            #region 2. Non-terminals
+
+            #endregion
+
+            #region 3. BNF rules
+
+            #endregion
+
+            #endregion
         }
     }
 }
