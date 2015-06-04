@@ -11,6 +11,15 @@ namespace JsIronyParser
     {
         public JsGrammar()
         {
+            NonTerminal FunctionExpression; // A4
+            NonTerminal ClassExpression; // A4
+            NonTerminal GeneratorExpression; // A4
+            NonTerminal MethodDefinition; // A4
+            NonTerminal YieldExpression; // A4
+            NonTerminal ClassDeclaration; // A4
+            NonTerminal GeneratorDeclaration; // A4
+            NonTerminal ArrowFunction; // A4
+            NonTerminal FunctionDeclaration; //A4
 
             #region A.1 Lexical Grammar
 
@@ -27,7 +36,7 @@ namespace JsIronyParser
             var ExponentIndicator = new RegexBasedTerminal("ExponentIndicator", "[eE]");
             var BinaryDigit = new RegexBasedTerminal("BinaryDigit", "[01]");
             var OctalDigit = new RegexBasedTerminal("OctalDigit", "[0-7]");
-            var HexDigit = new RegexBasedTerminal("HexDigit", "[0-9A-F]");
+            var HexDigit = new RegexBasedTerminal("HexDigit", "[0-9a-fA-F]");    // fix [0-9A-F] to [0-9a-fA-F]
             var SingleEscapeCharacter = new RegexBasedTerminal("SingleEscapeCharacter", "['\"\\bfnrtv]");
             var NonEscapeCharacter = new RegexBasedTerminal("NonEscapeCharacter", "[^'\"\\bfnrtv0-9xu\u000A\u000D\u2028\u2029]");
             var RegularExpressionNonTerminator = new RegexBasedTerminal("RegularExpressionNonTerminator", "[^\u000A\u000D\u2028\u2029]");
@@ -827,8 +836,8 @@ namespace JsIronyParser
             #endregion
 
             #region 2. Non-terminals
-            var FunctionDeclaration = new NonTerminal("FunctionDeclaration");
-            var FunctionExpression = new NonTerminal("FunctionExpression");
+            FunctionDeclaration = new NonTerminal("FunctionDeclaration");
+            FunctionExpression = new NonTerminal("FunctionExpression");
             var StrictFormalParameters = new NonTerminal("StrictFormalParameters");
             var FormalParameters = new NonTerminal("FormalParameters");
             var FormalParameterList = new NonTerminal("FormalParameterList");
@@ -837,19 +846,19 @@ namespace JsIronyParser
             var FormalParameter = new NonTerminal("FormalParameter");
             var FunctionBody = new NonTerminal("FunctionBody");
             var FunctionStatementList = new NonTerminal("FunctionStatementList");
-            var ArrowFunction = new NonTerminal("ArrowFunction");
+            ArrowFunction = new NonTerminal("ArrowFunction");
             var ArrowParameters = new NonTerminal("ArrowParameters");
             var ConciseBody = new NonTerminal("ConciseBody");
             var ArrowFormalParameters = new NonTerminal("ArrowFormalParameters");
-            var MethodDefinition = new NonTerminal("MethodDefinition");
+            MethodDefinition = new NonTerminal("MethodDefinition");
             var PropertySetParameterList = new NonTerminal("PropertySetParameterList");
             var GeneratorMethod = new NonTerminal("GeneratorMethod");
-            var GeneratorDeclaration = new NonTerminal("GeneratorDeclaration");
-            var GeneratorExpression = new NonTerminal("GeneratorExpression");
+            GeneratorDeclaration = new NonTerminal("GeneratorDeclaration");
+            GeneratorExpression = new NonTerminal("GeneratorExpression");
             var GeneratorBody = new NonTerminal("GeneratorBody");
-            var YieldExpression = new NonTerminal("YieldExpression");
-            var ClassDeclaration = new NonTerminal("ClassDeclaration");
-            var ClassExpression = new NonTerminal("ClassExpression");
+            YieldExpression = new NonTerminal("YieldExpression");
+            ClassDeclaration = new NonTerminal("ClassDeclaration");
+            ClassExpression = new NonTerminal("ClassExpression");
             var ClassTail = new NonTerminal("ClassTail");
             var ClassHeritage = new NonTerminal("ClassHeritage");
             var ClassBody = new NonTerminal("ClassBody");
@@ -1042,9 +1051,9 @@ namespace JsIronyParser
             #region A.6 Number Conversions
 
             #region 1. Terminals
-            var DecimalDigit = new RegexBasedTerminal("DecimalDigit", "[0-9]");
-            var ExponentIndicator = new RegexBasedTerminal("ExponentIndicator", "[eE]");
-            var HexDigit = new RegexBasedTerminal("HexDigit", "[0-9a-fA-F]");
+            //var DecimalDigit = new RegexBasedTerminal("DecimalDigit", "[0-9]");
+            //var ExponentIndicator = new RegexBasedTerminal("ExponentIndicator", "[eE]");
+            //var HexDigit = new RegexBasedTerminal("HexDigit", "[0-9a-fA-F]");
             #endregion
 
             #region 2. Non-terminals
@@ -1054,10 +1063,10 @@ namespace JsIronyParser
             var StrNumericLiteral = new NonTerminal("StrNumericLiteral");
             var StrDecimalLiteral = new NonTerminal("StrDecimalLiteral");
             var StrUnsignedDecimalLiteral = new NonTerminal("StrUnsignedDecimalLiteral");
-            var DecimalDigits = new NonTerminal("DecimalDigits");
-            var ExponentPart = new NonTerminal("ExponentPart");
-            var SignedInteger = new NonTerminal("SignedInteger");
-            var HexIntegerLiteral = new NonTerminal("HexIntegerLiteral");
+            //var DecimalDigits = new NonTerminal("DecimalDigits");
+            //var ExponentPart = new NonTerminal("ExponentPart");
+            // SignedInteger = new NonTerminal("SignedInteger");
+            //var HexIntegerLiteral = new NonTerminal("HexIntegerLiteral");
             #endregion
 
             #region 3. BNF rules
@@ -1086,15 +1095,16 @@ namespace JsIronyParser
             DecimalDigits.Rule = DecimalDigit
                                  | DecimalDigits + DecimalDigit;
 
-            ExponentPart.Rule = ExponentIndicator + SignedInteger;
+            //ExponentPart.Rule = ExponentIndicator + SignedInteger;
 
-            SignedInteger.Rule = DecimalDigits
-                                 | "+" + DecimalDigits
-                                 | "-" + DecimalDigits;
+            //SignedInteger.Rule = DecimalDigits
+            //                     | "+" + DecimalDigits
+            //                     | "-" + DecimalDigits;
 
             HexIntegerLiteral.Rule = "0x" + HexDigit
                                      | "0X" + HexDigit
-                                     | HexIntegerLiteral + HexDigit;
+                                     | HexIntegerLiteral + HexDigit; // last string 
+
             #endregion
 
             #endregion
@@ -1158,7 +1168,6 @@ namespace JsIronyParser
             var Quantifier = new NonTerminal("Quantifier");
             var QuantifierPrefix = new NonTerminal("QuantifierPrefix");
             var Atom = new NonTerminal("Atom");
-            var PatternCharacter = new NonTerminal("PatternCharacter");
             var AtomEscape = new NonTerminal("AtomEscape");
             var CharacterEscape = new NonTerminal("CharacterEscape");
             var RegExpUnicodeEscapeSequence = new NonTerminal("RegExpUnicodeEscapeSequence");
