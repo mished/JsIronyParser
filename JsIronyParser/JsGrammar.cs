@@ -350,7 +350,10 @@ namespace JsIronyParser
             #region A.2 Expressions
 
             #region 1. Terminals
-
+            var MultiplicativeOperator = new RegexBasedTerminal("MultiplicativeOperator", "[*/%]");
+            var AssignmentOperator = new RegexBasedTerminal("AssignmentOperator",
+                @"(\*=)|(/=)|(%=)|(\+=)|(-=)|(<<=)|(>>=)|(>>>=)|(&=)|(\^=)|(\|=)"); // Validate regex
+            // AssignmentOperator.Rule = ""; // one of *=	/=	%=	+=	-=	<<=	>>=	>>>=	&=	^=	|=
             #endregion
 
             #region 2. Non-terminals
@@ -390,7 +393,6 @@ namespace JsIronyParser
             var PostfixExpression = new NonTerminal("PostfixExpression");
             var UnaryExpression = new NonTerminal("UnaryExpression");
             var MultiplicativeExpression = new NonTerminal("MultiplicativeExpression");
-            var MultiplicativeOperator = new NonTerminal("MultiplicativeOperator");
             var AdditiveExpression = new NonTerminal("AdditiveExpression");
             var ShiftExpression = new NonTerminal("ShiftExpression");
             var RelationalExpression = new NonTerminal("RelationalExpression");
@@ -402,7 +404,6 @@ namespace JsIronyParser
             var LogicalORExpression = new NonTerminal("LogicalORExpression");
             var ConditionalExpression = new NonTerminal("ConditionalExpression");
             var AssignmentExpression = new NonTerminal("AssignmentExpression");
-            var AssignmentOperator = new NonTerminal("AssignmentOperator");
             var Expression = new NonTerminal("Expression");
 
             #endregion
@@ -548,8 +549,6 @@ namespace JsIronyParser
             MultiplicativeExpression.Rule = UnaryExpression
                                             | MultiplicativeExpression + MultiplicativeOperator + UnaryExpression;
 
-            MultiplicativeOperator.Rule = ""; // TODO: one of * / %
-
             AdditiveExpression.Rule = MultiplicativeExpression
                                       | AdditiveExpression + "+" + MultiplicativeExpression
                                       | AdditiveExpression + "-" + MultiplicativeExpression;
@@ -596,8 +595,6 @@ namespace JsIronyParser
                                         | ArrowFunction
                                         | LeftHandSideExpression + "=" + AssignmentExpression
                                         | LeftHandSideExpression + AssignmentOperator + AssignmentExpression;
-
-            AssignmentOperator.Rule = ""; // one of *=	/=	%=	+=	-=	<<=	>>=	>>>=	&=	^=	|=
 
             Expression.Rule = AssignmentExpression
                               | Expression + "," + AssignmentExpression;
@@ -670,58 +667,58 @@ namespace JsIronyParser
             #region 3. BNF rules
 
             Statement.Rule = BlockStatement
-                                | VariableStatement
-                                | EmptyStatement
-                                | ExpressionStatement
-                                | IfStatement
-                                | BreakableStatement
-                                | ContinueStatement
-                                | BreakStatement
-                                | ReturnStatement
-                                | WithStatement
-                                | LabelledStatement
-                                | ThrowStatement
-                                | TryStatement
-                                | DebuggerStatement;
+                             | VariableStatement
+                             | EmptyStatement
+                             | ExpressionStatement
+                             | IfStatement
+                             | BreakableStatement
+                             | ContinueStatement
+                             | BreakStatement
+                             | ReturnStatement
+                             | WithStatement
+                             | LabelledStatement
+                             | ThrowStatement
+                             | TryStatement
+                             | DebuggerStatement;
 
             Declaration.Rule = HoistableDeclaration
-                                | ClassDeclaration
-                                | LexicalDeclaration;
+                               | ClassDeclaration
+                               | LexicalDeclaration;
 
             HoistableDeclaration.Rule = FunctionDeclaration
                                         | GeneratorDeclaration;
 
             BreakableStatement.Rule = IterationStatement
-                                        | SwitchStatement;
+                                      | SwitchStatement;
 
             BlockStatement.Rule = Block;
 
             Block.Rule = ToTerm("{") + StatementList.Q() + "}";
 
             StatementList.Rule = StatementListItem
-                                    | StatementList + StatementListItem;
+                                 | StatementList + StatementListItem;
 
             StatementListItem.Rule = Statement
-                                        | Declaration;
+                                     | Declaration;
 
             LexicalDeclaration.Rule = LetOrConst + BindingList;
 
             BindingList.Rule = LexicalBinding
-                                | BindingList + ToTerm(",") + LexicalBinding;
+                               | BindingList + ToTerm(",") + LexicalBinding;
 
             LexicalBinding.Rule = BindingIdentifier + Initializer.Q()
-                                    | BindingPattern + Initializer;
+                                  | BindingPattern + Initializer;
 
             VariableStatement.Rule = ToTerm("var") + VariableDeclarationList;
 
             VariableDeclarationList.Rule = VariableDeclaration
-                                            | VariableDeclarationList + "," + VariableDeclaration;
+                                           | VariableDeclarationList + "," + VariableDeclaration;
 
             VariableDeclaration.Rule = BindingIdentifier + Initializer.Q()
-                                        | BindingPattern + Initializer;
+                                       | BindingPattern + Initializer;
 
             BindingPattern.Rule = ObjectBindingPattern
-                                    | ArrayBindingPattern;
+                                  | ArrayBindingPattern;
 
             ObjectBindingPattern.Rule = ToTerm("{") + "}"
                                         | "{" + BindingPropertyList + "}"
@@ -1089,7 +1086,7 @@ namespace JsIronyParser
             DecimalDigits.Rule = DecimalDigit
                                  | DecimalDigits + DecimalDigit;
 
-            ExponentPart.Rule = ExponentIndicator SignedInteger;
+            ExponentPart.Rule = ExponentIndicator + SignedInteger;
 
             SignedInteger.Rule = DecimalDigits
                                  | "+" + DecimalDigits
