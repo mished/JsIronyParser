@@ -949,9 +949,93 @@ namespace JsIronyParser
 
             #region 2. Non-terminals
 
+            var Script = new NonTerminal("Script");
+            var ScriptBody = new NonTerminal("ScriptBody");
+            var Module = new NonTerminal("Module");
+            var ModuleBody = new NonTerminal("ModuleBody");
+            var ModuleItemList = new NonTerminal("ModuleItemList");
+            var ModuleItem = new NonTerminal("ModuleItem");
+            var ImportDeclaration = new NonTerminal("ImportDeclaration");
+            var ImportClause = new NonTerminal("ImportClause");
+            var ImportedDefaultBinding = new NonTerminal("ImportedDefaultBinding");
+            var NameSpaceImport = new NonTerminal("NameSpaceImport");
+            var NamedImports = new NonTerminal("NamedImports");
+            var FromClause = new NonTerminal("FromClause");
+            var ImportsList = new NonTerminal("ImportsList");
+            var ImportSpecifier = new NonTerminal("ImportSpecifier");
+            var ModuleSpecifier = new NonTerminal("ModuleSpecifier");
+            var ImportedBinding = new NonTerminal("ImportedBinding");
+            var ExportDeclaration = new NonTerminal("ExportDeclaration");
+            var ExportClause = new NonTerminal("ExportClause");
+            var ExportsList = new NonTerminal("ExportsList");
+            var ExportSpecifier = new NonTerminal("ExportSpecifier");
+
             #endregion
 
             #region 3. BNF rules
+
+            Script.Rule = ScriptBody.Q();
+
+            ScriptBody.Rule = StatementList;
+
+            Module.Rule = ModuleBody.Q();
+
+            ModuleBody.Rule = ModuleItemList;
+
+            ModuleItemList.Rule = ModuleItem
+                                    | ModuleItemList + ModuleItem;
+
+            ModuleItem.Rule = ImportDeclaration
+                                | ExportDeclaration
+                                | StatementListItem;
+
+            ImportDeclaration.Rule = ToTerm("import") + ImportClause + FromClause + ";"
+                                        | "import" + ModuleSpecifier + ";";
+
+            ImportClause.Rule = ImportedDefaultBinding
+                                    | NameSpaceImport
+                                    | NamedImports
+                                    | ImportedDefaultBinding + "," + NameSpaceImport
+                                    | ImportedDefaultBinding + "," + NamedImports;
+
+            ImportedDefaultBinding.Rule = ImportedBinding;
+
+            NameSpaceImport.Rule = ToTerm("*") + "as" + ImportedBinding;
+
+            NamedImports.Rule = ToTerm("{") + "}"
+                                | "{" + ImportsList + "}"
+                                | "{" + ImportsList + "," + "}";
+
+            FromClause.Rule = ToTerm("from") + ModuleSpecifier;
+
+            ImportsList.Rule = ImportSpecifier
+                                | ImportsList + "," + ImportSpecifier;
+
+            ImportSpecifier.Rule = ImportedBinding
+                                    | IdentifierName + "as" + ImportedBinding;
+
+            ModuleSpecifier.Rule = StringLiteral;
+
+            ImportedBinding.Rule = BindingIdentifier;
+
+            ExportDeclaration.Rule = ToTerm("export") + "*" + FromClause + ";"
+                                    | "export" + ExportClause + FromClause + ";"
+                                    | "export" + ExportClause + ";"
+                                    | "export" + VariableStatement
+                                    | "export" + Declaration
+                                    | "export" + "default" + HoistableDeclaration
+                                    | "export" + "default" + ClassDeclaration
+                                    | "export" + "default" + AssignmentExpression; // [lookahead ∉ {function, class}] https://people.mozilla.org/~jorendorff/es6-draft.html#sec-exports
+
+            ExportClause.Rule = ToTerm("{") + "}"
+                                | "{" + ExportsList + "}"
+                                | "{" + ExportsList + "," + "}";
+
+            ExportsList.Rule = ExportSpecifier
+                                | ExportsList + "," + ExportSpecifier;
+
+            ExportSpecifier.Rule = IdentifierName
+                                    | IdentifierName + "as" + IdentifierName;
 
             #endregion
 
