@@ -1040,6 +1040,107 @@ namespace JsIronyParser
             #endregion
 
             #endregion
+
+
+            #region A.8 Regular Expressions
+
+            #region 1. Terminals
+
+            var SyntaxCharacter = new RegexBasedTerminal("SyntaxCharacter", @"[$\\.*+?()[]{}|^]"); // TODO: Check regex
+            var ControlEscape = new RegexBasedTerminal("ControlEscape", @"[fnrtv]");
+            var ControlLetter = new RegexBasedTerminal("ControlLetter", @"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]");
+            var CharacterClassEscape = new RegexBasedTerminal("CharacterClassEscape", @"[dDsSwW]");
+            var PatternCharacter = new RegexBasedTerminal("PatternCharacter", @"[^$\\.*+?()[]{}|^]"); // TODO: Check regex
+
+            #endregion
+
+            #region 2. Non-terminals
+
+            var Pattern = new NonTerminal("Pattern");
+            var Disjunction = new NonTerminal("Disjunction");
+            var Alternative = new NonTerminal("Alternative");
+            var Term = new NonTerminal("Term");
+            var Assertion = new NonTerminal("Assertion");
+            var Quantifier = new NonTerminal("Quantifier");
+            var QuantifierPrefix = new NonTerminal("QuantifierPrefix");
+            var Atom = new NonTerminal("Atom");
+            var PatternCharacter = new NonTerminal("PatternCharacter");
+            var AtomEscape = new NonTerminal("AtomEscape");
+            var CharacterEscape = new NonTerminal("CharacterEscape");
+            var RegExpUnicodeEscapeSequence = new NonTerminal("RegExpUnicodeEscapeSequence");
+            var LeadSurrogate = new NonTerminal("LeadSurrogate");
+            var TrailSurrogate = new NonTerminal("TrailSurrogate");
+            var NonSurrogate = new NonTerminal("NonSurrogate");
+            var IdentityEscape = new NonTerminal("IdentityEscape");
+            var DecimalEscape = new NonTerminal("DecimalEscape");
+            var CharacterClass = new NonTerminal("CharacterClass");
+            var ClassRanges = new NonTerminal("ClassRanges");
+            var NonemptyClassRanges = new NonTerminal("NonemptyClassRanges");
+            var NonemptyClassRangesNoDash = new NonTerminal("NonemptyClassRangesNoDash");
+            var ClassAtom = new NonTerminal("ClassAtom");
+            var ClassAtomNoDash = new NonTerminal("ClassAtomNoDash");
+            var ClassEscape = new NonTerminal("ClassEscape");
+
+            #endregion
+
+            #region 3. BNF rules
+
+            Pattern.Rule = Disjunction;
+
+            Disjunction.Rule = Alternative
+                                | Alternative + "|" + Disjunction;
+
+            Alternative.Rule = Alternative + Term;  // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-patterns
+                                // | [empty]
+
+            Term.Rule = Assertion
+                        | Atom
+                        | Atom + Quantifier;
+
+            Assertion.Rule = ToTerm("^")
+                                | "$"
+                                | "\\" + "b"
+                                | "\\" + "B"
+                                | "(" + "?" + "=" + Disjunction + ")"
+                                | "(" + "?" + "!" + Disjunction + ")";
+
+            QuantifierPrefix.Rule = ToTerm("*")
+                                    | "+"
+                                    | "?"
+                                    | "{" + DecimalDigits + "}"
+                                    | "{" + DecimalDigits + "," + "}"
+                                    | "{" + DecimalDigits + "," + DecimalDigits + "}";
+
+            Atom.Rule = PatternCharacter
+                        | ToTerm(".")
+                        | "\\" + AtomEscape
+                        | CharacterClass
+                        | "(" + Disjunction + ")"
+                        | "(" + "?" + ":" + Disjunction + ")";
+
+            AtomEscape.Rule = DecimalEscape
+                                | CharacterEscape
+                                | CharacterClassEscape;
+
+            CharacterEscape.Rule = ControlEscape
+                                    | ToTerm("c") + ControlLetter
+                                    | HexEscapeSequence
+                                    | RegExpUnicodeEscapeSequence
+                                    | IdentityEscape;
+
+            RegExpUnicodeEscapeSequence.Rule = ToTerm("u") + LeadSurrogate + "\\u" + TrailSurrogate
+                                                | "u" + LeadSurrogate
+                                                | "u" + TailSurrogate
+                                                | "u" + NonSurrogate
+                                                | "u" + Hex4Digits
+                                                | "u{" + HexDigits + "}";
+
+            //LeadSurrogate.Rule ...
+
+
+            #endregion
+
+            #endregion
         }
     }
 }
