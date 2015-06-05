@@ -1152,7 +1152,7 @@ namespace JsIronyParser
             var FirstClassAtomNoDash = new RegexBasedTerminal("FirstClassAtomNoDash", @"[^\\\]-]");
             var LeadSurrogate = new RegexBasedTerminal("[\xD800-\xDBFF]");
             var TrailSurrogate = new RegexBasedTerminal("[\xDC00-\xDFFF]");
-            var NonSurrogate = new RegexBasedTerminal("[0-9a-dA-D][0-7][0-9a-fA-F][0-9a-fA-F]|[d-fD-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]"); // See https://people.mozilla.org/~jorendorff/es6-draft.html#sec-patterns
+            var NonSurrogate = new RegexBasedTerminal("[0-9a-dA-D][0-7][0-9a-fA-F][0-9a-fA-F]|[e-fE-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]"); // See https://people.mozilla.org/~jorendorff/es6-draft.html#sec-patterns
 
             #endregion
 
