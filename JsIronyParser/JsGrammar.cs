@@ -24,6 +24,7 @@ namespace JsIronyParser
             #region A.1 Lexical Grammar
 
             #region 1. Terminals
+
             var SourceCharacter = new RegexBasedTerminal("SourceCharacter", @"[\s\S]");
             var MultiLineNotAsteriskChar = new RegexBasedTerminal("MultiLineNotAsteriskChar", "[^*]");
             var MultiLineNotForwardSlashOrAsteriskChar = new RegexBasedTerminal("MultiLineNotForwardSlashOrAsteriskChar", "[^/*]");
@@ -36,7 +37,7 @@ namespace JsIronyParser
             var ExponentIndicator = new RegexBasedTerminal("ExponentIndicator", "[eE]");
             var BinaryDigit = new RegexBasedTerminal("BinaryDigit", "[01]");
             var OctalDigit = new RegexBasedTerminal("OctalDigit", "[0-7]");
-            var HexDigit = new RegexBasedTerminal("HexDigit", "[0-9a-fA-F]");    // fix [0-9A-F] to [0-9a-fA-F]
+            var HexDigit = new RegexBasedTerminal("HexDigit", "[0-9a-fA-F]");
             var SingleEscapeCharacter = new RegexBasedTerminal("SingleEscapeCharacter", "['\"\\bfnrtv]");
             var NonEscapeCharacter = new RegexBasedTerminal("NonEscapeCharacter", "[^'\"\\bfnrtv0-9xu\u000A\u000D\u2028\u2029]");
             var RegularExpressionNonTerminator = new RegexBasedTerminal("RegularExpressionNonTerminator", "[^\u000A\u000D\u2028\u2029]");
@@ -59,9 +60,11 @@ namespace JsIronyParser
 
             var NullLiteral = ToTerm("null", "NullLiteral");
             var BooleanLiteral = ToTerm("true") | "false";
+
             #endregion
 
             #region 2. Non-terminals
+
             var InputElementDiv = new NonTerminal("InputElementDiv");
             var InputElementRegExp = new NonTerminal("InputElementRegExp");
             var InputElementRegExpOrTemplateTail = new NonTerminal("InputElementRegExpOrTemplateTail");
@@ -129,9 +132,11 @@ namespace JsIronyParser
             var WhiteSpace = new NonTerminal("WhiteSpace", TAB | VT | FF | SP | NBSP | zwnbsp | USP);
             var LineTerminator = new NonTerminal("LineTerminator", LF | CR | LS | PS);
             var LineTerminatorSequence = new NonTerminal("LineTerminatorSequence", LF | CR | LS | PS | CR + LF);
+
             #endregion
 
             #region 3. BNF rules
+
             InputElementDiv.Rule = WhiteSpace 
                                     | LineTerminator
                                     | Comment
@@ -351,6 +356,7 @@ namespace JsIronyParser
                                      | LineContinuation
                                      | LineTerminatorSequence
                                      | new RegexBasedTerminal("[^`\\$\u000A\u000D\u2028\u2029]");
+
             #endregion
 
             #endregion
@@ -359,13 +365,15 @@ namespace JsIronyParser
             #region A.2 Expressions
 
             #region 1. Terminals
+
             var MultiplicativeOperator = new RegexBasedTerminal("MultiplicativeOperator", "[*/%]");
             var AssignmentOperator = new RegexBasedTerminal("AssignmentOperator",
-                @"(\*=)|(/=)|(%=)|(\+=)|(-=)|(<<=)|(>>=)|(>>>=)|(&=)|(\^=)|(\|=)"); // Validate regex
-            // AssignmentOperator.Rule = ""; // one of *=	/=	%=	+=	-=	<<=	>>=	>>>=	&=	^=	|=
+                @"(\*=)|(/=)|(%=)|(\+=)|(-=)|(<<=)|(>>=)|(>>>=)|(&=)|(\^=)|(\|=)");
+
             #endregion
 
             #region 2. Non-terminals
+
             var IdentifierReference = new NonTerminal("IdentifierReference");
             var BindingIdentifier = new NonTerminal("BindingIdentifier");
             var LabelIdentifier = new NonTerminal("LabelIdentifier");
@@ -418,18 +426,29 @@ namespace JsIronyParser
             #endregion
 
             #region 3. BNF rules
+
             IdentifierReference.Rule = IdentifierName
                                         | "yield";
 
-            BindingIdentifier.Rule = IdentifierName // TODO: http://people.mozilla.org/~jorendorff/es6-draft.html#sec-identifiers
+            BindingIdentifier.Rule = IdentifierName
                                     | "yield";               
 
-            LabelIdentifier.Rule = IdentifierName  //
+            LabelIdentifier.Rule = IdentifierName  
                                     | "yield";
                                     
-            Identifier.Rule = IdentifierName; // 
+            Identifier.Rule = IdentifierName; // TODO:
 
-            PrimaryExpression.Rule = "this"
+            /*
+                          IdentifierName.Rule = IdentifierStart
+                                    | IdentifierName + IdentifierPart;
+             
+                          ReservedWord.Rule = Keyword
+                                | FutureReservedWord
+                                | NullLiteral
+                                | BooleanLiteral;
+             */
+
+            PrimaryExpression.Rule = ToTerm("this")
                                     | IdentifierReference
                                     | Literal
                                     | ArrayLiteral
@@ -441,19 +460,19 @@ namespace JsIronyParser
                                     | TemplateLiteral
                                     | CoverParenthesizedExpressionAndArrowParameterList;
 
-            CoverParenthesizedExpressionAndArrowParameterList.Rule = "(" + Expression + ")"
+            CoverParenthesizedExpressionAndArrowParameterList.Rule = ToTerm("(") + Expression + ")"
                                                                     | "(" + ")"
-                                                                    | "(" + SpreadElement + BindingIdentifier + ")"
-                                                                    | "(" + Expression + "," + SpreadElement + BindingIdentifier + ")";
+                                                                    | "(" + "..." + BindingIdentifier + ")"
+                                                                    | "(" + Expression + "," + "..." + BindingIdentifier + ")";
             
-            ParenthesizedExpression.Rule = "(" + Expression + ")";
+            ParenthesizedExpression.Rule = ToTerm("(") + Expression + ")";
 
             Literal.Rule = NullLiteral
                            | BooleanLiteral
                            | NumericLiteral
                            | StringLiteral;
 
-            ArrayLiteral.Rule = "[" + Elision.Q() + "]"
+            ArrayLiteral.Rule = ToTerm("[") + Elision.Q() + "]"
                                 | "[" + ElementList + "]"
                                 | "[" + ElementList + "," + Elision.Q() + "]";
 
@@ -462,12 +481,12 @@ namespace JsIronyParser
                                | ElementList + "," + Elision.Q() + AssignmentExpression
                                | ElementList + "," + Elision.Q() + SpreadElement;
 
-            Elision.Rule = ","
+            Elision.Rule = ToTerm(",")
                            | Elision + ",";
 
-            SpreadElement.Rule = AssignmentExpression; // TODO: "..." http://people.mozilla.org/~jorendorff/es6-draft.html#sec-array-initializer
+            SpreadElement.Rule = ToTerm("...") + AssignmentExpression;
 
-            ObjectLiteral.Rule = "{" + "}"
+            ObjectLiteral.Rule = ToTerm("{") + "}"
                                  | "{" + PropertyDefinitionList + "}"
                                  | "{" + PropertyDefinitionList + "," + "}";
 
@@ -487,7 +506,7 @@ namespace JsIronyParser
                                        | StringLiteral
                                        | NumericLiteral;
 
-            ComputedPropertyName.Rule = "[" + AssignmentExpression + "]";
+            ComputedPropertyName.Rule = ToTerm("[") + AssignmentExpression + "]";
 
             CoverInitializedName.Rule = IdentifierReference + Initializer;
 
@@ -510,12 +529,12 @@ namespace JsIronyParser
                                     | MetaProperty
                                     | "new" + MemberExpression + Arguments;
 
-            SuperProperty.Rule = "super" + "[" + Expression + "]"
+            SuperProperty.Rule = ToTerm("super") + "[" + Expression + "]"
                                  | "super" + "." + IdentifierName;
 
             MetaProperty.Rule = NewTarget;
 
-            NewTarget.Rule = "new" + "." + "target";
+            NewTarget.Rule = ToTerm("new") + "." + "target";
 
             NewExpression.Rule = MemberExpression
                                  | "new" + NewExpression;
@@ -527,21 +546,21 @@ namespace JsIronyParser
                                   | CallExpression + "." + IdentifierName
                                   | CallExpression + TemplateLiteral;
 
-            SuperCall.Rule = "super" + Arguments;
+            SuperCall.Rule = ToTerm("super") + Arguments;
 
-            Arguments.Rule = "(" + ")"
+            Arguments.Rule = ToTerm("(") + ")"
                              | "(" + ArgumentList + ")";
 
             ArgumentList.Rule = AssignmentExpression
-                                | AssignmentExpression // ... + AssignmentExpression
+                                | "..." + AssignmentExpression
                                 | ArgumentList + "," + AssignmentExpression
-                                | ArgumentList + "," + AssignmentExpression; // ... + AssignmentExpression
+                                | ArgumentList + "," + "..." + AssignmentExpression;
 
             LeftHandSideExpression.Rule = NewExpression
                                           | CallExpression;
 
             PostfixExpression.Rule = LeftHandSideExpression
-                                     | LeftHandSideExpression + "++"  // [no LineTerminator here] ++
+                                     | LeftHandSideExpression + "++"
                                      | LeftHandSideExpression + "--";
 
             UnaryExpression.Rule = PostfixExpression
@@ -597,7 +616,7 @@ namespace JsIronyParser
                                        | LogicalORExpression + "||" + LogicalANDExpression;
 
             ConditionalExpression.Rule = LogicalORExpression
-                                         | LogicalORExpression + "?" + AssignmentExpression + ":" + AssignmentExpression; // Check
+                                         | LogicalORExpression + "?" + AssignmentExpression + ":" + AssignmentExpression;
 
             AssignmentExpression.Rule = ConditionalExpression
                                         | YieldExpression
@@ -756,7 +775,7 @@ namespace JsIronyParser
                                         | BindingIdentifier + Initializer.Q();
 
             BindingRestElement.Rule = ToTerm("...") + BindingIdentifier
-                                        | ToTerm("...") + BindingIdentifier;
+                                        | "..." + BindingIdentifier;
 
             ExpressionStatement.Rule = Expression + ";"; // [lookahead ∉ {{, function, class, let [}] https://people.mozilla.org/~jorendorff/es6-draft.html#sec-expression-statement
 
@@ -861,10 +880,11 @@ namespace JsIronyParser
             #endregion
 
             #region 3. BNF rules
-            FunctionDeclaration.Rule = "function" + BindingIdentifier + "(" + FormalParameters + ")" + "{" + FunctionBody + "}"
+
+            FunctionDeclaration.Rule = ToTerm("function") + BindingIdentifier + "(" + FormalParameters + ")" + "{" + FunctionBody + "}"
                                        | "function" + "(" + FormalParameters + ")" + "{" + FunctionBody + "}";
 
-            FunctionExpression.Rule = "function" + BindingIdentifier.Q() + "(" + FormalParameters + ")" + "{" + FunctionBody + "}";
+            FunctionExpression.Rule = ToTerm("function") + BindingIdentifier.Q() + "(" + FormalParameters + ")" + "{" + FunctionBody + "}";
 
             StrictFormalParameters.Rule = FormalParameters;
 
@@ -886,7 +906,7 @@ namespace JsIronyParser
 
             FunctionStatementList.Rule = StatementList;
 
-            ArrowFunction.Rule = ArrowParameters + "=>" + ConciseBody; //ArrowParameters [no LineTerminator here] "=>"  this rule is correct?
+            ArrowFunction.Rule = ArrowParameters + "=>" + ConciseBody; //ArrowParameters [no LineTerminator here] "=>"
 
             ArrowParameters.Rule = BindingIdentifier
                                    | CoverParenthesizedExpressionAndArrowParameterList; // ????? http://people.mozilla.org/~jorendorff/es6-draft.html#sec-arrow-function-definitions
@@ -903,27 +923,27 @@ namespace JsIronyParser
 
             PropertySetParameterList.Rule = FormalParameter;
 
-            GeneratorMethod.Rule = "*" + PropertyName + "(" + StrictFormalParameters + ")" + "{" + GeneratorBody + "}";
+            GeneratorMethod.Rule = ToTerm("*") + PropertyName + "(" + StrictFormalParameters + ")" + "{" + GeneratorBody + "}";
 
-            GeneratorDeclaration.Rule = "function" + "*" + BindingIdentifier + "(" + FormalParameters + ")" + "{" + GeneratorBody + "}"
+            GeneratorDeclaration.Rule = ToTerm("function") + "*" + BindingIdentifier + "(" + FormalParameters + ")" + "{" + GeneratorBody + "}"
                                         | "function" + "*" + "(" + FormalParameters + ")" + "{" + GeneratorBody + "}";
 
-            GeneratorExpression.Rule = "function" + "*" + BindingIdentifier.Q() + "(" + FormalParameters + ")" + "{" + GeneratorBody + "}";
+            GeneratorExpression.Rule = ToTerm("function") + "*" + BindingIdentifier.Q() + "(" + FormalParameters + ")" + "{" + GeneratorBody + "}";
 
             GeneratorBody.Rule = FunctionBody;
 
-            YieldExpression.Rule = "yield"
+            YieldExpression.Rule = ToTerm("yield")
                                    | "yield" + AssignmentExpression  // yield [no LineTerminator here] AssignmentExpression
                                    | "yield" + "*" + AssignmentExpression; // yield [no LineTerminator here] * AssignmentExpression
 
-            ClassDeclaration.Rule = "class" + BindingIdentifier + ClassTail
+            ClassDeclaration.Rule = ToTerm("class") + BindingIdentifier + ClassTail
                                     | "class" + ClassTail;
 
-            ClassExpression.Rule = "class" + BindingIdentifier.Q() + ClassTail;
+            ClassExpression.Rule = ToTerm("class") + BindingIdentifier.Q() + ClassTail;
 
             ClassTail.Rule = ClassHeritage.Q() + "{" + ClassBody.Q() + "}";
 
-            ClassHeritage.Rule = "extends" + LeftHandSideExpression;
+            ClassHeritage.Rule = ToTerm("extends") + LeftHandSideExpression;
 
             ClassBody.Rule = ClassElementList;
 
@@ -931,7 +951,7 @@ namespace JsIronyParser
                                     | ClassElementList + ClassElement;
 
             ClassElement.Rule = MethodDefinition
-                                | "static" + MethodDefinition // || ; or && ;?
+                                | "static" + MethodDefinition
                                 | ";";  
 
             #endregion 
@@ -1049,6 +1069,7 @@ namespace JsIronyParser
             #endregion
 
             #region 2. Non-terminals
+
             var StringNumericLiteral = new NonTerminal("StringNumericLiteral");
             var StrWhiteSpace = new NonTerminal("StrWhiteSpace");
             var StrWhiteSpaceChar = new NonTerminal("StrWhiteSpaceChar");
@@ -1060,9 +1081,11 @@ namespace JsIronyParser
             //var ExponentPart = new NonTerminal("ExponentPart");
             // SignedInteger = new NonTerminal("SignedInteger");
             //var HexIntegerLiteral = new NonTerminal("HexIntegerLiteral");
+
             #endregion
 
             #region 3. BNF rules
+
             StringNumericLiteral.Rule = StrWhiteSpace.Q()
                                         | StrWhiteSpace.Q() + StrNumericLiteral + StrWhiteSpace.Q();
 
@@ -1097,7 +1120,7 @@ namespace JsIronyParser
 
             HexIntegerLiteral.Rule = "0x" + HexDigit
                                      | "0X" + HexDigit
-                                     | HexIntegerLiteral + HexDigit; // last string 
+                                     | HexIntegerLiteral + HexDigit;
 
             #endregion
 
@@ -1107,20 +1130,25 @@ namespace JsIronyParser
             #region A.7 Universal Resource Identifier Character Classes
 
             #region 1. Terminals
+
             var uriReserved = new RegexBasedTerminal("uriReserved", "[;/?:@&=+$,]");
             var uriAlpha = new RegexBasedTerminal("uriAlpha", "[a-zA-Z]");
             var uriMark = new RegexBasedTerminal("uriMark", "[-_.!~*'()]");
+
             #endregion
 
             #region 2. Non-terminals
+
             var uri = new NonTerminal("uri");
             var uriCharacters = new NonTerminal("uriCharacters");
             var uriCharacter = new NonTerminal("uriCharacter");
             var uriUnescaped = new NonTerminal("uriUnescaped");
             var uriEscaped = new NonTerminal("uriEscaped");
+
             #endregion
 
             #region 3. BNF rules
+
             uri.Rule = uriCharacters.Q();
 
             uriCharacters.Rule = uriCharacter + uriCharacters.Q();
@@ -1133,7 +1161,7 @@ namespace JsIronyParser
                                 | DecimalDigit
                                 | uriMark;
 
-            uriEscaped.Rule = "%" + HexDigit + HexDigit; // %?
+            uriEscaped.Rule = ToTerm("%") + HexDigit + HexDigit;
 
             #endregion
             
@@ -1148,10 +1176,10 @@ namespace JsIronyParser
             var ControlEscape = new RegexBasedTerminal("ControlEscape", @"[fnrtv]");
             var ControlLetter = new RegexBasedTerminal("ControlLetter", @"[a-zA-Z]");
             var CharacterClassEscape = new RegexBasedTerminal("CharacterClassEscape", @"[dDsSwW]");
-            var PatternCharacter = new RegexBasedTerminal("PatternCharacter", @"[^$\\.*+?()\[\]{}|^]"); // TODO: Check regex
+            var PatternCharacter = new RegexBasedTerminal("PatternCharacter", @"[^$\\.*+?()\[\]{}|^]");
             var FirstClassAtomNoDash = new RegexBasedTerminal("FirstClassAtomNoDash", @"[^\\\]-]");
-            var LeadSurrogate = new RegexBasedTerminal("[\xD800-\xDBFF]");
-            var TrailSurrogate = new RegexBasedTerminal("[\xDC00-\xDFFF]");
+            var LeadSurrogate = new RegexBasedTerminal("[dD][8-9a-bA-B][0-9a-fA-F][0-9a-fA-F]");
+            var TrailSurrogate = new RegexBasedTerminal("[dD][c-fC-F][0-9a-fA-F][0-9a-fA-F]");
             var NonSurrogate = new RegexBasedTerminal("[0-9a-dA-D][0-7][0-9a-fA-F][0-9a-fA-F]|[e-fE-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]"); // See https://people.mozilla.org/~jorendorff/es6-draft.html#sec-patterns
 
             #endregion
