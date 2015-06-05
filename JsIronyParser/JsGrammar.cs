@@ -1150,11 +1150,12 @@ namespace JsIronyParser
 
             #region 1. Terminals
 
-            var SyntaxCharacter = new RegexBasedTerminal("SyntaxCharacter", @"[$\\.*+?()[]{}|^]"); // TODO: Check regex
+            var SyntaxCharacter = new RegexBasedTerminal("SyntaxCharacter", @"[$\\.*+?()\[\]{}|^]");
             var ControlEscape = new RegexBasedTerminal("ControlEscape", @"[fnrtv]");
-            var ControlLetter = new RegexBasedTerminal("ControlLetter", @"[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]");
+            var ControlLetter = new RegexBasedTerminal("ControlLetter", @"[a-zA-Z]");
             var CharacterClassEscape = new RegexBasedTerminal("CharacterClassEscape", @"[dDsSwW]");
             var PatternCharacter = new RegexBasedTerminal("PatternCharacter", @"[^$\\.*+?()[]{}|^]"); // TODO: Check regex
+            var FirstClassAtomNoDash = new RegexBasedTerminal("FirstClassAtomNoDash", @"[^\\\]-]");
 
             #endregion
 
@@ -1238,8 +1239,43 @@ namespace JsIronyParser
                                                 | "u" + Hex4Digits
                                                 | "u{" + HexDigits + "}";
 
-            //LeadSurrogate.Rule ...
+            // LeadSurrogate.Rule 
 
+            // TrailSurrogate
+
+            // NonSurrogate 
+
+            IdentityEscape.Rule = SyntaxCharacter
+                                  | "//"  // OR 1 /?
+                                  | ""; // SourceCharacter but not UnicodeIDContinue
+
+            DecimalEscape.Rule = DecimalIntegerLiteral; // [lookahead ∉ DecimalDigit]
+
+            CharacterClass.Rule = ToTerm("[") + ClassRanges + "]"  // [ [lookahead ∉ {^}] ClassRanges]
+                                  | "[" + "^" + ClassRanges + "]";
+
+            ClassRanges.Rule = [empty]
+                               | NonemptyClassRanges;
+
+            NonemptyClassRanges.Rule = ClassAtom
+                                       | ClassAtom + NonemptyClassRangesNoDash
+                                       | ClassAtom + "-" + ClassAtom + ClassRanges;
+
+            NonemptyClassRangesNoDash.Rule = ClassAtom
+                                             | ClassAtomNoDash + NonemptyClassRangesNoDash
+                                             | ClassAtomNoDash + "-" + ClassAtom + ClassRanges;
+
+            ClassAtom.Rule = ToTerm("-")
+                             | ClassAtomNoDash;
+
+            ClassAtomNoDash.Rule = FirstClassAtomNoDash
+                                   | "\\" + ClassEscape;
+
+            ClassEscape.Rule = DecimalEscape
+                               | "b"
+                               | "-"
+                               | CharacterEscape
+                               | CharacterClassEscape;
 
             #endregion
 
