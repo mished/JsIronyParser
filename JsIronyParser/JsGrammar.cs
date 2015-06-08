@@ -1297,6 +1297,11 @@ namespace JsIronyParser
             #endregion
 
             #endregion
+
+            var Program = new NonTerminal("Program");
+            Program.Rule = StatementList;
+
+            this.Root = Program;
         }
     }
 }
