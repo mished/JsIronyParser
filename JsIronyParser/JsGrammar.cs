@@ -46,10 +46,6 @@ namespace JsIronyParser
             var SingleStringLiteral = new StringLiteral("SingleStringLiteral", "'", StringOptions.AllowsAllEscapes);
             var DoubleStringLiteral = new StringLiteral("DoubleStringLiteral", "\"", StringOptions.AllowsAllEscapes);
             
-
-            //TODO: use NumberLiteral, StringLiteral, CommentLiteral
-
-
             var SourceCharacter = new RegexBasedTerminal("SourceCharacter", @"[\s\S]");
             var MultiLineNotAsteriskChar = new RegexBasedTerminal("MultiLineNotAsteriskChar", "[^*]");
             var MultiLineNotForwardSlashOrAsteriskChar = new RegexBasedTerminal("MultiLineNotForwardSlashOrAsteriskChar", "[^/*]");
